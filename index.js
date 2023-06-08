@@ -28,17 +28,6 @@ async function run() {
     // Connect the client to the server (optional starting in v4.7)
     const classCollection = client.db('Azrealle').collection('classes');
 
-    // get all info from api -------------------
-    app.get('/classes', async (req, res) => {
-      try {
-        const result = await classCollection.find().sort({ total_students: -1 }).toArray();
-        res.send(result);
-      } catch (error) {
-        console.error(error);
-        res.status(500).send('Internal Server Error');
-      }
-    });
-
 //popular classes section -------------------
    app.get('/popularclasses', async (req, res) => {
       try {
@@ -53,6 +42,28 @@ async function run() {
 app.get('/popularinstructor', async (req, res) => {
   try {
     const result = await classCollection.find().limit(6).sort({ total_students: -1 }).toArray();
+    res.send(result);
+  } catch (error) {
+    console.error(error);
+    res.status(500).send('Internal Server Error');
+  }
+});
+
+// all classes info section  -------------------
+app.get('/allclasses', async (req, res) => {
+  try {
+    const result = await classCollection.find().toArray();
+    res.send(result);
+  } catch (error) {
+    console.error(error);
+    res.status(500).send('Internal Server Error');
+  }
+});
+
+// all instructors info section  -------------------
+app.get('/allinstructors', async (req, res) => {
+  try {
+    const result = await classCollection.find().toArray();
     res.send(result);
   } catch (error) {
     console.error(error);
