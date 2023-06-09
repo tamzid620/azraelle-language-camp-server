@@ -1,7 +1,7 @@
 const express = require('express')
 const app = express()
 require('dotenv').config();
-const { MongoClient , ServerApiVersion} = require('mongodb');
+const { MongoClient , ServerApiVersion, ObjectId} = require('mongodb');
 const cors = require('cors');
 const port = process.env.PORT || 5000;
 
@@ -27,6 +27,7 @@ async function run() {
   try {
     // Connect the client to the server (optional starting in v4.7)
     const classCollection = client.db('Azrealle').collection('classes');
+    const selectCollection = client.db('Azrealle').collection('select');
 
 //popular classes section -------------------
    app.get('/popularclasses', async (req, res) => {
@@ -69,6 +70,14 @@ app.get('/allinstructors', async (req, res) => {
     console.error(error);
     res.status(500).send('Internal Server Error');
   }
+});
+
+//  class select section -------------------
+app.post('/classselect/:id', async (req, res) => {
+  const id = req.params.id;
+  const query = { _id: new ObjectId(id) };
+  const result = await selectCollection.insertOne(query);
+  res.send(result);
 });
 
 
