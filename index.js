@@ -29,6 +29,18 @@ async function run() {
     const classCollection = client.db('Azrealle').collection('classes');
     const selectCollection = client.db('Azrealle').collection('select');
 
+
+// app.get -----------------------
+app.get('/classes', async (req, res) => {
+  try {
+    const result = await classCollection.find().toArray();
+    res.send(result);
+  } catch (error) {
+    console.error(error);
+    res.status(500).send('Internal Server Error');
+  }
+});
+
 //popular classes section -------------------
    app.get('/popularclasses', async (req, res) => {
       try {
@@ -73,10 +85,8 @@ app.get('/allinstructors', async (req, res) => {
 });
 
 //  class select section -------------------
-app.post('/classselect/:id', async (req, res) => {
-  const id = req.params.id;
-  const query = { _id: new ObjectId(id) };
-  const result = await selectCollection.insertOne(query);
+app.post('/classselect', async (req, res) => {
+  const result = await selectCollection.insertOne(req.body);
   res.send(result);
 });
 
