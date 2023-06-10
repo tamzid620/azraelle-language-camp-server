@@ -1,7 +1,7 @@
 const express = require('express')
 const app = express()
 require('dotenv').config();
-const { MongoClient , ServerApiVersion, ObjectId} = require('mongodb');
+const { MongoClient, ServerApiVersion, ObjectId } = require('mongodb');
 const cors = require('cors');
 const port = process.env.PORT || 5000;
 
@@ -28,21 +28,22 @@ async function run() {
     // Connect the client to the server (optional starting in v4.7)
     const classCollection = client.db('Azrealle').collection('classes');
     const selectCollection = client.db('Azrealle').collection('select');
+    const usersCollection = client.db('Azrealle').collection('users');
 
 
-// app.get -----------------------
-app.get('/classes', async (req, res) => {
-  try {
-    const result = await classCollection.find().toArray();
-    res.send(result);
-  } catch (error) {
-    console.error(error);
-    res.status(500).send('Internal Server Error');
-  }
-});
+    // app.get -----------------------
+    app.get('/classes', async (req, res) => {
+      try {
+        const result = await classCollection.find().toArray();
+        res.send(result);
+      } catch (error) {
+        console.error(error);
+        res.status(500).send('Internal Server Error');
+      }
+    });
 
-//popular classes section -------------------
-   app.get('/popularclasses', async (req, res) => {
+    //popular classes section -------------------
+    app.get('/popularclasses', async (req, res) => {
       try {
         const result = await classCollection.find().limit(6).sort({ total_students: -1 }).toArray();
         res.send(result);
@@ -51,70 +52,76 @@ app.get('/classes', async (req, res) => {
         res.status(500).send('Internal Server Error');
       }
     });
-//popular instructor section -------------------
-app.get('/popularinstructor', async (req, res) => {
-  try {
-    const result = await classCollection.find().limit(6).sort({ total_students: -1 }).toArray();
-    res.send(result);
-  } catch (error) {
-    console.error(error);
-    res.status(500).send('Internal Server Error');
-  }
-});
+    //popular instructor section -------------------
+    app.get('/popularinstructor', async (req, res) => {
+      try {
+        const result = await classCollection.find().limit(6).sort({ total_students: -1 }).toArray();
+        res.send(result);
+      } catch (error) {
+        console.error(error);
+        res.status(500).send('Internal Server Error');
+      }
+    });
 
-// all classes info section  -------------------
-app.get('/allclasses', async (req, res) => {
-  try {
-    const result = await classCollection.find().toArray();
-    res.send(result);
-  } catch (error) {
-    console.error(error);
-    res.status(500).send('Internal Server Error');
-  }
-});
+    // all classes info section  -------------------
+    app.get('/allclasses', async (req, res) => {
+      try {
+        const result = await classCollection.find().toArray();
+        res.send(result);
+      } catch (error) {
+        console.error(error);
+        res.status(500).send('Internal Server Error');
+      }
+    });
 
-// all instructors info section  -------------------
-app.get('/allinstructors', async (req, res) => {
-  try {
-    const result = await classCollection.find().toArray();
-    res.send(result);
-  } catch (error) {
-    console.error(error);
-    res.status(500).send('Internal Server Error');
-  }
-});
+    // all instructors info section  -------------------
+    app.get('/allinstructors', async (req, res) => {
+      try {
+        const result = await classCollection.find().toArray();
+        res.send(result);
+      } catch (error) {
+        console.error(error);
+        res.status(500).send('Internal Server Error');
+      }
+    });
 
-//  class select section -------------------
+    //  class select section -------------------
 
-app.post('/classselect/:email', async (req, res) => {
-  const email = req.params.email;
-  const data = req.body;
-  data.email = email;
+    app.post('/classselect/:email', async (req, res) => {
+      const email = req.params.email;
+      const data = req.body;
+      data.email = email;
 
-  const result = await selectCollection.insertOne(data);
-  res.send(result);
-});
+      const result = await selectCollection.insertOne(data);
+      res.send(result);
+    });
 
-app.get('/classselect/:email', async (req, res) => {
-  const email = req.params.email;
-  const result = await selectCollection.find({ email }).toArray();
-  res.send(result);
-});
+    app.get('/classselect/:email', async (req, res) => {
+      const email = req.params.email;
+      const result = await selectCollection.find({ email }).toArray();
+      res.send(result);
+    });
+
+    app.delete('/classselect/:email', async (req, res) => {
+      const email = req.params.email;
+      const query = { email: email };
+      const result = await selectCollection.deleteOne(query);
+      res.send(result);
+    })
 
 
-// app.delete('/classselect/:id', async (req, res) => {
-//   const id = req.params.id;
-//   const query = { _id: new ObjectId(id) };
-//   const result = await selectCollection.deleteOne(query);
-//   res.send(result);
-// })
-app.delete('/classselect/:email', async (req, res) => {
-  const email = req.params.email;
-  const query = { email: email };
-  const result = await selectCollection.deleteOne(query);
-  res.send(result);
-})
+    // user section -----------------------
+    app.post('/users', async (req, res) => {
+      const user = req.body;
+      const query = {email: user.email};
+      const existingUser = await usersCollection.findOne(query)
+      if(existingUser){
+        return res.send({ message: 'user already exists' });
+      }
 
+      const result = await usersCollection.insertOne(user);
+      res.send(result);
+    });
 
 
     await client.connect();
