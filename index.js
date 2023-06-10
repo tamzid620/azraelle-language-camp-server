@@ -53,12 +53,38 @@ async function run() {
 
 
     // jwt section -----------------------
+
     app.post('/jwt', (req, res) => {
       const user = req.body;
       const token = jwt.sign(user, process.env.JWT_TOKEN_SECRET, { expiresIn: '7d' })
 
       res.send({ token })
     })
+
+    //admin verify jwt section -------------
+
+    const verifyAdmin = async (req, res, next) => {
+      const email = req.decoded.email;
+      const query = { email: email }
+      const user = await usersCollection.findOne(query);
+      if (user?.role !== 'admin') {
+        return res.status(403).send({ error: true, message: 'Access Denied' });
+      }
+      next();
+    }
+
+    //admin verify jwt section -------------
+
+    const verifyInstructor = async (req, res, next) => {
+      const email = req.decoded.email;
+      const query = { email: email }
+      const user = await usersCollection.findOne(query);
+      if (user?.role !== 'instructor') {
+        return res.status(403).send({ error: true, message: 'Access Denied' });
+      }
+      next();
+    }
+
 
 
     // app.get -----------------------
@@ -150,6 +176,7 @@ async function run() {
 
 
     // user section -----------------------
+
     app.post('/users', async (req, res) => {
       const user = req.body;
       const query = { email: user.email };
@@ -161,7 +188,7 @@ async function run() {
       res.send(result);
     });
 
-    app.get('/users', async (req, res) => {
+    app.get('/users', verifyAdmin ,verifyInstructor ,verifyJWT , async (req, res) => {
       const result = await usersCollection.find().toArray();
       res.send(result);
     })
@@ -174,6 +201,7 @@ async function run() {
     })
 
     // admin section ------------------------
+
     app.patch('/users/admin/:id', async (req, res) => {
       const id = req.params.id;
       const filter = { _id: new ObjectId(id) };
@@ -201,6 +229,7 @@ async function run() {
 
 
     // instructor section ------------------------
+
     app.patch('/users/instructor/:id', async (req, res) => {
       const id = req.params.id;
       const filter = { _id: new ObjectId(id) };
@@ -228,7 +257,7 @@ async function run() {
 
 
 
-    
+
     await client.connect();
     // Send a ping to confirm a successful connection
     await client.db("admin").command({ ping: 1 });
