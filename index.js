@@ -118,10 +118,22 @@ async function run() {
       if(existingUser){
         return res.send({ message: 'user already exists' });
       }
-
       const result = await usersCollection.insertOne(user);
       res.send(result);
     });
+
+    app.get('/users',  async(req ,res) => {
+      const result = await usersCollection.find().toArray();
+      res.send(result);
+    })
+
+    app.delete('/users/:email', async (req, res) => {
+      const email = req.params.email;
+      const query = { email: email };
+      const result = await usersCollection.deleteOne(query);
+      res.send(result);
+    })
+
 
 
     await client.connect();
