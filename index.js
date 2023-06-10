@@ -85,10 +85,36 @@ app.get('/allinstructors', async (req, res) => {
 });
 
 //  class select section -------------------
-app.post('/classselect', async (req, res) => {
-  const result = await selectCollection.insertOne(req.body);
+
+app.post('/classselect/:email', async (req, res) => {
+  const email = req.params.email;
+  const data = req.body;
+  data.email = email;
+
+  const result = await selectCollection.insertOne(data);
   res.send(result);
 });
+
+app.get('/classselect/:email', async (req, res) => {
+  const email = req.params.email;
+  const result = await selectCollection.find({ email }).toArray();
+  res.send(result);
+});
+
+
+// app.delete('/classselect/:id', async (req, res) => {
+//   const id = req.params.id;
+//   const query = { _id: new ObjectId(id) };
+//   const result = await selectCollection.deleteOne(query);
+//   res.send(result);
+// })
+app.delete('/classselect/:email', async (req, res) => {
+  const email = req.params.email;
+  const query = { email: email };
+  const result = await selectCollection.deleteOne(query);
+  res.send(result);
+})
+
 
 
     await client.connect();
