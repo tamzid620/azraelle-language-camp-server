@@ -1,7 +1,7 @@
 const express = require('express')
 const app = express()
 require('dotenv').config();
-const  jwt = require('jsonwebtoken');
+const jwt = require('jsonwebtoken');
 const { MongoClient, ServerApiVersion, ObjectId } = require('mongodb');
 const cors = require('cors');
 const port = process.env.PORT || 5000;
@@ -12,23 +12,23 @@ app.use(express.json());
 
 // verifyJWT section --------------------------
 
-const verifyJWT = ( req, res, next ) =>{
+const verifyJWT = (req, res, next) => {
   const authorization = req.headers.authorization;
-  if(!authorization) {
-    return res.status(401).send({error: true, message: 'UnAuthorization Access'});
+  if (!authorization) {
+    return res.status(401).send({ error: true, message: 'UnAuthorization Access' });
   }
   const token = authorization.split(' ')[1];
-  
-  jwt.verify(token,process.env.JWT_TOKEN_SECRET,(error, decoded) =>{
-    if(error){
-      return res.status(401).send({error: true, message: 'UnAuthorization Access'})
+
+  jwt.verify(token, process.env.JWT_TOKEN_SECRET, (error, decoded) => {
+    if (error) {
+      return res.status(401).send({ error: true, message: 'UnAuthorization Access' })
     }
     req.decoded = decoded;
     next();
   })
-  }
+}
 
-  
+
 
 // mongodb section ------------------------------
 
@@ -53,7 +53,7 @@ async function run() {
 
 
     // jwt section -----------------------
-    app.post('/jwt' , (req, res) => {
+    app.post('/jwt', (req, res) => {
       const user = req.body;
       const token = jwt.sign(user, process.env.JWT_TOKEN_SECRET, { expiresIn: '7d' })
 
@@ -127,16 +127,16 @@ async function run() {
       res.send(result);
     });
 
-    app.get('/classselect/:email',verifyJWT,  async (req, res) => {
+    app.get('/classselect/:email', verifyJWT, async (req, res) => {
       const email = req.params.email;
       if (!email) {
         return res.send([]);
-       }
-       const decodedEmail = req.decoded.email;
-       if(email !== decodedEmail){
-         return res.status(403).send({error: true, message: 'Access Denied'})
-       }
- 
+      }
+      const decodedEmail = req.decoded.email;
+      if (email !== decodedEmail) {
+        return res.status(403).send({ error: true, message: 'Access Denied' })
+      }
+
       const result = await selectCollection.find({ email }).toArray();
       res.send(result);
     });
@@ -152,16 +152,16 @@ async function run() {
     // user section -----------------------
     app.post('/users', async (req, res) => {
       const user = req.body;
-      const query = {email: user.email};
+      const query = { email: user.email };
       const existingUser = await usersCollection.findOne(query)
-      if(existingUser){
+      if (existingUser) {
         return res.send({ message: 'user already exists' });
       }
       const result = await usersCollection.insertOne(user);
       res.send(result);
     });
 
-    app.get('/users',  async(req ,res) => {
+    app.get('/users', async (req, res) => {
       const result = await usersCollection.find().toArray();
       res.send(result);
     })
@@ -174,47 +174,61 @@ async function run() {
     })
 
     // admin section ------------------------
-    app.patch('/users/admin/:id' , async(req, res) => {
+    app.patch('/users/admin/:id', async (req, res) => {
       const id = req.params.id;
-      const filter = {_id : new ObjectId(id)};
+      const filter = { _id: new ObjectId(id) };
       const updateDoc = {
-        $set :{
+        $set: {
           role: 'admin'
         },
       };
       const result = await usersCollection.updateOne(filter, updateDoc);
       res.send(result);
     })
-    
-    app.get('/users/admin/:email',verifyJWT, async(req, res) => {
+
+    app.get('/users/admin/:email', verifyJWT, async (req, res) => {
       const email = req.params.email;
 
-      if(req.decoded.email !== email) {
-        res.send({admin: false})
+      if (req.decoded.email !== email) {
+        res.send({ admin: false })
       }
 
-      const query = {email:email}
+      const query = { email: email }
       const user = await usersCollection.findOne(query);
-      const result = {admin : user ?.role === 'admin'}
+      const result = { admin: user?.role === 'admin' }
       res.send(result)
     })
 
 
     // instructor section ------------------------
-    app.patch('/users/instructor/:id' , async(req, res) => {
+    app.patch('/users/instructor/:id', async (req, res) => {
       const id = req.params.id;
-      const filter = {_id : new ObjectId(id)};
+      const filter = { _id: new ObjectId(id) };
       const updateDoc = {
-        $set :{
+        $set: {
           role: 'instructor'
         },
       };
       const result = await usersCollection.updateOne(filter, updateDoc);
       res.send(result);
     })
-  
+
+    app.get('/users/instructor/:email', verifyJWT, async (req, res) => {
+      const email = req.params.email;
+
+      if (req.decoded.email !== email) {
+        res.send({ instructor : false })
+      }
+
+      const query = { email: email }
+      const user = await usersCollection.findOne(query);
+      const result = { instructor: user?.role === 'instructor' }
+      res.send(result)
+    })
 
 
+
+    
     await client.connect();
     // Send a ping to confirm a successful connection
     await client.db("admin").command({ ping: 1 });
