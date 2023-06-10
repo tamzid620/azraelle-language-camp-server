@@ -52,6 +52,7 @@ async function run() {
         res.status(500).send('Internal Server Error');
       }
     });
+
     //popular instructor section -------------------
     app.get('/popularinstructor', async (req, res) => {
       try {
@@ -134,6 +135,33 @@ async function run() {
       res.send(result);
     })
 
+    // admin section ------------------------
+    app.patch('/users/admin/:id' , async(req, res) => {
+      const id = req.params.id;
+      const filter = {_id : new ObjectId(id)};
+      const updateDoc = {
+        $set :{
+          role: 'admin'
+        },
+      };
+      const result = await usersCollection.updateOne(filter, updateDoc);
+      res.send(result);
+    })
+
+
+    // instructor section ------------------------
+    app.patch('/users/instructor/:id' , async(req, res) => {
+      const id = req.params.id;
+      const filter = {_id : new ObjectId(id)};
+      const updateDoc = {
+        $set :{
+          role: 'instructor'
+        },
+      };
+      const result = await usersCollection.updateOne(filter, updateDoc);
+      res.send(result);
+    })
+  
 
 
     await client.connect();
