@@ -55,6 +55,7 @@ async function run() {
     const classCollection = client.db('Azrealle').collection('classes');
     const selectCollection = client.db('Azrealle').collection('select');
     const usersCollection = client.db('Azrealle').collection('users');
+    const paymentCollection = client.db('Azrealle').collection('payments');
     // collection section ----------------------------------------------------------------> 
 
 
@@ -101,13 +102,7 @@ async function run() {
       next();
     }
 
-
-
-
-
-
-
-
+    
     // app.get -----------------------
     app.get('/classes', async (req, res) => {
       try {
@@ -348,9 +343,10 @@ async function run() {
 
 
 // Payment section --------------------> 
-app.post('/create-payment-intent', verifyJWT, async (req, res) => {
-  const { price } = req.body;
-  const amount = price * 100;
+app.post('/create-payment-intent/:id', verifyJWT, async (req, res) => {
+  const { class_price } = req.body;
+  const amount = class_price * 100;
+  console.log(class_price,amount);
   const paymentIntent = await stripe.paymentIntents.create({
     amount: amount,
     currency: 'usd',
@@ -360,6 +356,18 @@ app.post('/create-payment-intent', verifyJWT, async (req, res) => {
     clientSecret: paymentIntent.client_secret
   })
 })
+
+// payment get ---------------------------->
+app.post('/payments', verifyJWT, async(req, res) =>{
+  const payment = req.body;
+  const insertResult = await paymentCollection.insertOne(payment);
+
+  const query = {_id: { $in: payment.cartItems.map(id => new ObjectId(id)) }}
+  const deleteResult = await selectCollection.deleteMany(query)
+
+  res.send({ insertResult, deleteResult});
+})
+
 
 
 
