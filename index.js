@@ -102,7 +102,7 @@ async function run() {
       next();
     }
 
-    
+
     // app.get -----------------------
     app.get('/classes', async (req, res) => {
       try {
@@ -166,8 +166,6 @@ async function run() {
 
 
 
-
-
     // all instructors info section  -------------------
     app.get('/allinstructors', async (req, res) => {
       try {
@@ -180,11 +178,7 @@ async function run() {
     });
 
 
-
-
-
-
-    //  class select section -------------------
+    //  my selected select section -------------------
 
     app.post('/classselect/:email', async (req, res) => {
       const email = req.params.email;
@@ -195,8 +189,16 @@ async function run() {
       res.send(result);
     });
 
-
-
+//  my enrolled class section -------------------
+app.get('/enrolledclass', async (req, res) => {
+  try {
+    const result = await paymentCollection.find().toArray();
+    res.send(result);
+  } catch (error) {
+    console.error(error);
+    res.status(500).send('Internal Server Error');
+  }
+});
 
 
 
@@ -297,11 +299,6 @@ async function run() {
     })
 
 
-
-
-
-
-
     // instructor section ------------------------
 
     app.patch('/users/instructor/:id', async (req, res) => {
@@ -358,17 +355,16 @@ app.post('/create-payment-intent/:id', verifyJWT, async (req, res) => {
 })
 
 // payment get ---------------------------->
-app.post('/payments', verifyJWT, async(req, res) =>{
+app.post('/payments/:id', verifyJWT, async (req, res) => {
+  const id = req.params.id; 
   const payment = req.body;
   const insertResult = await paymentCollection.insertOne(payment);
 
-  const query = {_id: { $in: payment.cartItems.map(id => new ObjectId(id)) }}
-  const deleteResult = await selectCollection.deleteMany(query)
+  const query =  {_id: new ObjectId(payment.selectClassItems)};
+  const deleteResult = await selectCollection.deleteMany(query);
 
-  res.send({ insertResult, deleteResult});
-})
-
-
+  res.send({ insertResult, deleteResult, id }); 
+});
 
 
 
