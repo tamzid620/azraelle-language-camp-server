@@ -200,6 +200,17 @@ app.get('/enrolledclass', async (req, res) => {
   }
 });
 
+//  payment history section -------------------
+app.get('/paymenthistory', async (req, res) => {
+  try {
+    const result = await paymentCollection.find().toArray();
+    res.send(result);
+  } catch (error) {
+    console.error(error);
+    res.status(500).send('Internal Server Error');
+  }
+});
+
 
 
     app.get('/classselect/:email', verifyJWT, async (req, res) => {
