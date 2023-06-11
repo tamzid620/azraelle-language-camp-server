@@ -5,6 +5,7 @@ const jwt = require('jsonwebtoken');
 const { MongoClient, ServerApiVersion, ObjectId } = require('mongodb');
 const cors = require('cors');
 const port = process.env.PORT || 5000;
+const stripe = require('stripe')(process.env.PAYMENT_SECRET_KEY)
 
 // middleware ------------------
 app.use(cors());
@@ -46,10 +47,15 @@ const client = new MongoClient(uri, {
 
 async function run() {
   try {
-    // Connect the client to the server (optional starting in v4.7)
+
+
+
+
+    // collection section ----------------------------------------------------------------> 
     const classCollection = client.db('Azrealle').collection('classes');
     const selectCollection = client.db('Azrealle').collection('select');
     const usersCollection = client.db('Azrealle').collection('users');
+    // collection section ----------------------------------------------------------------> 
 
 
     // jwt section -----------------------
@@ -60,6 +66,11 @@ async function run() {
 
       res.send({ token })
     })
+
+
+
+
+
 
     //admin verify jwt section -------------
 
@@ -72,6 +83,11 @@ async function run() {
       }
       next();
     }
+
+
+
+
+
 
     //admin verify jwt section -------------
 
@@ -87,6 +103,11 @@ async function run() {
 
 
 
+
+
+
+
+
     // app.get -----------------------
     app.get('/classes', async (req, res) => {
       try {
@@ -97,6 +118,11 @@ async function run() {
         res.status(500).send('Internal Server Error');
       }
     });
+
+
+
+
+
 
     //popular classes section -------------------
     app.get('/popularclasses', async (req, res) => {
@@ -109,6 +135,11 @@ async function run() {
       }
     });
 
+
+
+
+
+
     //popular instructor section -------------------
     app.get('/popularinstructor', async (req, res) => {
       try {
@@ -119,6 +150,12 @@ async function run() {
         res.status(500).send('Internal Server Error');
       }
     });
+
+
+
+
+
+
 
     // all classes info section  -------------------
     app.get('/allclasses', async (req, res) => {
@@ -131,6 +168,11 @@ async function run() {
       }
     });
 
+
+
+
+
+
     // all instructors info section  -------------------
     app.get('/allinstructors', async (req, res) => {
       try {
@@ -142,6 +184,11 @@ async function run() {
       }
     });
 
+
+
+
+
+
     //  class select section -------------------
 
     app.post('/classselect/:email', async (req, res) => {
@@ -152,6 +199,11 @@ async function run() {
       const result = await selectCollection.insertOne(data);
       res.send(result);
     });
+
+
+
+
+
 
     app.get('/classselect/:email', verifyJWT, async (req, res) => {
       const email = req.params.email;
@@ -167,12 +219,20 @@ async function run() {
       res.send(result);
     });
 
+
+
+
     app.delete('/classselect/:email', async (req, res) => {
       const email = req.params.email;
       const query = { email: email };
       const result = await selectCollection.deleteOne(query);
       res.send(result);
     })
+
+
+
+
+
 
 
     // user section -----------------------
@@ -188,10 +248,16 @@ async function run() {
       res.send(result);
     });
 
-    app.get('/users', verifyAdmin ,verifyInstructor ,verifyJWT , async (req, res) => {
+
+
+
+    app.get('/users',verifyJWT , verifyAdmin , async (req, res) => {
       const result = await usersCollection.find().toArray();
       res.send(result);
     })
+
+
+
 
     app.delete('/users/:email', async (req, res) => {
       const email = req.params.email;
@@ -199,6 +265,11 @@ async function run() {
       const result = await usersCollection.deleteOne(query);
       res.send(result);
     })
+
+
+
+
+
 
     // admin section ------------------------
 
@@ -214,6 +285,9 @@ async function run() {
       res.send(result);
     })
 
+
+
+
     app.get('/users/admin/:email', verifyJWT, async (req, res) => {
       const email = req.params.email;
 
@@ -226,6 +300,11 @@ async function run() {
       const result = { admin: user?.role === 'admin' }
       res.send(result)
     })
+
+
+
+
+
 
 
     // instructor section ------------------------
@@ -242,6 +321,9 @@ async function run() {
       res.send(result);
     })
 
+
+
+    
     app.get('/users/instructor/:email', verifyJWT, async (req, res) => {
       const email = req.params.email;
 
@@ -254,6 +336,30 @@ async function run() {
       const result = { instructor: user?.role === 'instructor' }
       res.send(result)
     })
+ 
+    // add class section =================> 
+
+    app.post('/addaclass', async (req, res) => {
+      const newclass = req.body;
+
+      const result = await classCollection.insertOne(newclass);
+      res.send(result);
+    });
+
+
+// Payment section --------------------> 
+app.post('/create-payment-intent', verifyJWT, async (req, res) => {
+  const { price } = req.body;
+  const amount = price * 100;
+  const paymentIntent = await stripe.paymentIntents.create({
+    amount: amount,
+    currency: 'usd',
+    payment_method_types: ['card']
+  });
+  res.send({
+    clientSecret: paymentIntent.client_secret
+  })
+})
 
 
 
