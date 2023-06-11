@@ -53,6 +53,7 @@ async function run() {
 
     // collection section ----------------------------------------------------------------> 
     const classCollection = client.db('Azrealle').collection('classes');
+    const addclassCollection = client.db('Azrealle').collection('addclass');
     const selectCollection = client.db('Azrealle').collection('select');
     const usersCollection = client.db('Azrealle').collection('users');
     const paymentCollection = client.db('Azrealle').collection('payments');
@@ -312,7 +313,7 @@ app.get('/paymenthistory', async (req, res) => {
 
     // instructor section ------------------------
 
-    app.patch('/users/instructor/:id', async (req, res) => {
+    app.patch('/users/instructor/:id',verifyJWT, async (req, res) => {
       const id = req.params.id;
       const filter = { _id: new ObjectId(id) };
       const updateDoc = {
@@ -327,7 +328,7 @@ app.get('/paymenthistory', async (req, res) => {
 
 
     
-    app.get('/users/instructor/:email', verifyJWT, async (req, res) => {
+    app.get('/users/instructor/:email',verifyJWT, async (req, res) => {
       const email = req.params.email;
 
       if (req.decoded.email !== email) {
@@ -345,9 +346,37 @@ app.get('/paymenthistory', async (req, res) => {
     app.post('/addaclass', async (req, res) => {
       const newclass = req.body;
 
-      const result = await classCollection.insertOne(newclass);
+      const result = await addclassCollection.insertOne(newclass);
       res.send(result);
     });
+
+    // my classes secion ==============> 
+    app.get('/myclasses',  async (req, res) => {
+      try {
+        const result = await addclassCollection.find().toArray();
+        res.send(result);
+      } catch (error) {
+        console.error(error);
+        res.status(500).send('Internal Server Error');
+      }
+    });
+
+ // update toy ---------------------------------------------------------------
+app.put('/updateclass/:id', async (req, res) => {
+const id = req.params.id;
+const body = req.body;
+const filter = { _id: new ObjectId(id) };
+const updateclass = {
+  $set: {
+    class_name: body.class_name,
+    available_seats: body.available_seats,
+    class_price: body.class_price
+  },
+}
+const result = await addclassCollection.updateOne(filter, updateclass);
+res.send(result)
+});
+    
 
 
 // Payment section --------------------> 
@@ -366,13 +395,14 @@ app.post('/create-payment-intent/:id', verifyJWT, async (req, res) => {
 })
 
 // payment get ---------------------------->
+
 app.post('/payments/:id', verifyJWT, async (req, res) => {
   const id = req.params.id; 
   const payment = req.body;
   const insertResult = await paymentCollection.insertOne(payment);
 
   const query =  {_id: new ObjectId(payment.selectClassItems)};
-  const deleteResult = await selectCollection.deleteMany(query);
+  const deleteResult = await paymentCollection.deleteMany(query);
 
   res.send({ insertResult, deleteResult, id }); 
 });
