@@ -310,10 +310,22 @@ app.get('/paymenthistory', async (req, res) => {
       res.send(result)
     })
 
+    // manage classes section =================> 
+    app.get('/manageclass',  async (req, res) => {
+      try {
+        const result = await addclassCollection.find().toArray();
+        res.send(result);
+      } catch (error) {
+        console.error(error);
+        res.status(500).send('Internal Server Error');
+      }
+    });
+
+
 
     // instructor section ------------------------
 
-    app.patch('/users/instructor/:id',verifyJWT, async (req, res) => {
+    app.patch('/users/instructor/:id', verifyJWT, verifyAdmin, async (req, res) => {
       const id = req.params.id;
       const filter = { _id: new ObjectId(id) };
       const updateDoc = {
@@ -360,6 +372,7 @@ app.get('/paymenthistory', async (req, res) => {
         res.status(500).send('Internal Server Error');
       }
     });
+
 
  // update toy ---------------------------------------------------------------
 app.put('/updateclass/:id', async (req, res) => {
