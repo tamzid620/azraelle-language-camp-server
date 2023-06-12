@@ -370,23 +370,23 @@ app.get('/paymenthistory', async (req, res) => {
 
 
  // update toy ---------------------------------------------------------------
-app.put('/updateclass/:id', async (req, res) => {
-const id = req.params.id;
-const body = req.body;
-const filter = { _id: new ObjectId(id) };
-const updateclass = {
-  $set: {
-    class_name: body.class_name,
-    available_seats: body.available_seats,
-    class_price: body.class_price
-  },
-}
-const result = await addclassCollection.updateOne(filter, updateclass);
-res.send(result)
+app.put("/updateclass/:id", async (req, res) => {
+  const id = req.params.id;
+  console.log(id);
+  const data = req.body;
+  const query = { _id: ObjectId(id) };
+  const updateclass = {
+    $set: {
+      class_name: data.class_name,
+      available_seats: data.available_seats,
+      class_price: data.class_price
+    },
+  };
+  const result = await addclassCollection.updateOne(query, updateclass);
+  res.json(result);
 });
+
     
-
-
 // Payment section --------------------> 
 app.post('/create-payment-intent/:id', verifyJWT, async (req, res) => {
   const { class_price } = req.body;
