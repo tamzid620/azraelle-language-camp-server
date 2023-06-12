@@ -294,9 +294,6 @@ app.get('/paymenthistory', async (req, res) => {
       res.send(result);
     })
 
-
-
-
     app.get('/users/admin/:email', verifyJWT, async (req, res) => {
       const email = req.params.email;
 
@@ -321,11 +318,9 @@ app.get('/paymenthistory', async (req, res) => {
       }
     });
 
-
-
     // instructor section ------------------------
 
-    app.patch('/users/instructor/:id', verifyJWT, verifyAdmin, async (req, res) => {
+    app.patch('/users/instructor/:id', async (req, res) => {
       const id = req.params.id;
       const filter = { _id: new ObjectId(id) };
       const updateDoc = {
